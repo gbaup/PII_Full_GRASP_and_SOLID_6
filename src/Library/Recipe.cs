@@ -9,12 +9,14 @@ using System.Collections.Generic;
 
 namespace Full_GRASP_And_SOLID
 {
-    public class Recipe : IRecipeContent // Modificado por DIP
+    public class Recipe : IRecipeContent, TimerClient // Modificado por DIP
     {
         // Cambiado por OCP
         private IList<BaseStep> steps = new List<BaseStep>();
 
         public Product FinalProduct { get; set; }
+
+        public bool Cooked { get; set; } = false;
 
         // Agregado por Creator
         public void AddStep(Product input, double quantity, Equipment equipment, int time)
@@ -62,5 +64,38 @@ namespace Full_GRASP_And_SOLID
 
             return result;
         }
+
+        public int GetCookTime()
+        {
+            int result = 0;
+
+            foreach (BaseStep step in this.steps)
+            {
+                result = result + step.Time;
+            }
+
+            return result;
+        }
+
+        public void Cook()
+        {
+            if (!Cooked)
+            {
+                int cookTime = GetCookTime();
+
+                CountdownTimer timer = new();
+
+                timer.Register(cookTime, this);
+            }
+        }
+
+        public void TimeOut()
+        {
+            Cooked = true;
+        }
+
+        // Recipe es un Observer de CountdownTimer
+        // SRP ya que Recipe mantiene su responsabilidad principal de gestionar los pasos de la receta y su estado de cocción. 
+        //      Delega la responsabilidad de llevar la cuenta del tiempo al CountdownTimer
     }
 }
